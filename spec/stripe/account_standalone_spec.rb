@@ -79,8 +79,12 @@ describe 'Account API', live: true do
   # end
 
   # standalone, managed, or both ?
-  # verifies the name of the recipient user is required by law
-  it 'verifies the full legal name of the recipient user' do
-    pending 'have not gotten to this yet'
+  # verifies the name of the `recipient`* user as required by law
+  # *'recipient' is no longer used : replaced by `account`
+  it 'verifies the full legal name of the managed account user' do
+    pending 'have not finished : in Standalone Stripe may do this'
+    user = User.find_by_email('managed_account_user@example.com')
+    account = Stripe::Account.retrieve(user.account_id)
+    expect(ations).to be 'written'
   end
 end

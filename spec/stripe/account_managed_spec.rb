@@ -1,4 +1,4 @@
-# these tests are NOT yet ready for prime time
+# these tests are NOT quite ready for prime time
 # these tests have NOT yet been run against a working app with accounts in place to be tested
 # this file may still contain duplicates among the account tests, refactoring those out will occur
 require 'pry'
@@ -7,7 +7,7 @@ include Warden::Test::Helpers
 Warden.test_mode!
 
 # managed accounts only
-describe 'Account API', live: true do
+describe 'Account API', type: :controller, live: true do
 
   before(:each) do
     StripeMock.start
@@ -31,9 +31,9 @@ describe 'Account API', live: true do
       managed: true,
       country: 'US'
     )
-binding.pry # this call to pry must have no spaces in front of it and, 
-            # this call will open your console in Pry, in the test environment
-            # this call can be moved anywhere inside an `it do` block
+#binding.pry # this call will open your console in Pry, in the test environment
+             # this call can be moved anywhere inside an `it do` block
+             # once you have the test passing, remove the binding.pry call
     expect(response).to be_a Stripe::Account
     expect(account.id).to match /^acct\_/
     expect(account.managed).to be true
@@ -43,7 +43,7 @@ binding.pry # this call to pry must have no spaces in front of it and,
   ### Reference        : https://stripe.com/docs/connect/authentication
   it 'authenticates managed account using API keys' do
     pending 'not creating account, and response expectation is probably not correct'
-    Stripe.api_key = PLATFORM_SECRET_KEY
+    Stripe.api_key = ENV['STRIPE_API_KEY']
     Stripe::Account.create({
       managed: true,
       country: 'US'
@@ -56,7 +56,7 @@ binding.pry # this call to pry must have no spaces in front of it and,
   end
 
   it 'stores information about the managed account' do
-    pending 'needs a lot more work'
+    pending 'needs a lot more work to be done after account is migrated into working app'
     connected_stripe_account_id = ("code to store it")
     platform_secret_key = ("code to store it")
     account = Stripe::Account.retrieve()
@@ -76,7 +76,7 @@ binding.pry # this call to pry must have no spaces in front of it and,
     }
   end
 
-  it 'transfer fails when verifying recipient SSN or EIN tax ID' do
+  it 'transfer fails when verifying account owners SSN or EIN tax ID' do
     pending 'methods and object names need to be verified'
     expect { Stripe::Account.transfer(account_number: '4000056655665564', amount: 100) }.to raise_error { |e|
       expect(e).to be_a Stripe::TransferError # not sure of this code
@@ -184,14 +184,14 @@ binding.pry # this call to pry must have no spaces in front of it and,
       expect(account_verification.details).to eq nil
     end
     if expect(account_verification.status).to eq "failed"
-      expect(account_verification.document.id).to match /^file\_/
-      expect(account_verification.details).to match "^[a-zA-Z0-9]+$"
+      expect(account_verification.document.id).to_not match /^file\_/    # code smell
+      expect(account_verification.details).to_not match "^[a-zA-Z0-9]+$" # code smell
     end
   end
 
   # verifies bank account routing numbers
   # https://stripe.com/docs/testing
-  it 'verifies recipient user bank account routing number' do
+  it 'verifies account user bank account routing number' do
     pending 'hmm, how do i write this one'
     account = Stripe::Account.retrieve(account_number: '110000000')
     bank_routing_number = account.routing_number
@@ -202,16 +202,16 @@ binding.pry # this call to pry must have no spaces in front of it and,
 
   # verifies successful bank account numbers can transfer funds
   # https://stripe.com/docs/testing
-  it 'verifies our platform can interact with recipient user bank account' do
-    account = Stripe::Account.retrieve(account_number: '000111111116')
+  it 'verifies our platform can interact with account user bank account' do
+    account = Stripe::Account.retrieve(account_number: '000123456789')
     expect(response).to match /^succeeded/  # not sure of this yet
-    transfer = Stripe::Account.transfer(account_number: '000111111116', amount: 100)
+    transfer = Stripe::Account.transfer(account_number: '000123456789', amount: 100)
     expect(response).to match /^succeeded/
   end
 
   # verifies unsuccessful bank account numbers cannot transfer funds
   # https://stripe.com/docs/testing
-  it 'verifies our platform can interact with recipient user bank account' do
+  it 'verifies our platform can interact with account user bank account' do
     account = Stripe::Account.retrieve(account_number: '000111111116')
     expect(response).to match /^no_account/
     transfer = Stripe::Account.transfer(account_number: '000111111116', amount: 100)
@@ -220,7 +220,7 @@ binding.pry # this call to pry must have no spaces in front of it and,
 
   # verifies unsuccessful bank account numbers cannot transfer funds
   # https://stripe.com/docs/testing
-  it 'verifies non-existent recipient user bank account fails' do
+  it 'verifies non-existent account user bank account fails' do
     account = Stripe::Account.retrieve(account_number: '000111111113')
     expect(response).to match /^account_closed/
     transfer = Stripe::Account.transfer(account_number: '000111111113', amount: 100)
@@ -229,7 +229,7 @@ binding.pry # this call to pry must have no spaces in front of it and,
 
   # verifies unsuccessful debit card numbers cannot receive funds
   # https://stripe.com/docs/testing
-  it 'verifies non-existent recipient user debit card account fails' do
+  it 'verifies non-existent account user debit card account fails' do
     account = Stripe::Account.retrieve(account_number: 'get-right-number-for-testing-debit-card')
     expect(response).to match /^no_account/
     transfer = Stripe::Account.transfer(account_number: 'get-right-number-for-testing', amount: 100)
@@ -238,6 +238,7 @@ binding.pry # this call to pry must have no spaces in front of it and,
 
   ### standalone managed or both ? on the next two tests
   # please choose one of the following two tests by uncommenting it, and commenting out the other
+  # NOTE : You may not reverse automatic Stripe transfers : https://stripe.com/docs/api#transfer_reversals 
   it 'automatic account transfers are enabled' do
     pending 'test to ensure the Transfer API is set to Automatic transfers enabled option'
   end
@@ -247,16 +248,81 @@ binding.pry # this call to pry must have no spaces in front of it and,
   # end
 
   # standalone or managed or both ?
+  # https://stripe.com/docs/testing
+  # 4000056655665556 is a Visa debit transfer test number that will succeed.
   it 'transfers money from our account to user account' do
     pending 'test transferring money to user account'
     account = Stripe::Account.retrieve()
     balance = Stripe::Balance.retrieve()
-    transfer = Stripe::Account.transfer(card_number: '4000056655665564', amount: 100)
+    transfer = Stripe::Account.transfer(card_number: '4000056655665556', amount: 100)
     expect(response).to be true
     expect(balance).to eq balance - transfer.amount
   end
 
-  ### standalone or managed or both ?
+  ### Transfer failures that can be tested 
+  ### The reason a given transfer failed is available in the failure_code attribute of a Transfer object
+  ### This is a list of all the types of failure codes Stripe currently send : as of 20150611
+  ### Stripe may add more at any time, so you shouldn't rely on only these failure codes existing in your code. 
+  it 'insufficient_funds' do
+    pending 'write the code'
+  end
+
+  it 'account_closed' do
+    pending 'write the code'
+  end
+
+  it 'no_account' do
+    pending 'write the code'
+  end
+
+  it 'invalid_account_number' do
+    pending 'write the code'
+  end
+
+  it 'debit_not_authorized' do
+    pending 'write the code'
+  end
+
+  it 'bank_ownership_changed' do
+    pending 'write the code'
+  end
+
+  it 'account_frozen' do
+    pending 'write the code'
+  end
+
+  # 4000056655665564 is a Visa debit transfer test number that will fail with a could_not_process code
+  it 'could_not_process' do
+    pending 'now written, see could_not_process line 71'
+  end
+
+  it 'bank_account_restricted' do
+    pending 'write the code'
+  end
+
+  it 'invalid_currency' do
+    pending 'write the code'
+  end
+
+  ### Transfers reversals can be tested
+  ### https://stripe.com/docs/api#create_transfer_reversal
+  it 'it processes and verifies Stripe::Transfer.reversal' do
+    pending 'first four lines of code are from Stripe'
+    # tr = Stripe::Transfer.retrieve({TRANSFER_ID})
+    # reversal = tr.reversals.create
+    #
+    # tr = Stripe::Transfer.retrieve("tr_YourAlphaNumericString")
+    # reversal = tr.reversals.create
+    # 
+    # Note on the above TRANSFER_ID :
+    # To retrieve a transfer_id, we need to have created one, a transfer that is, so it has an ID.
+    # expect(response).to match /^trr\_/
+    # expect(tr.id).to match /^tr\_/
+    # transfer_reversal = Stripe::TransferReversal.retrieve(reversal.id)
+    # expect(ations).to be 'needs more work'
+  end
+
+  ### Managed Account only
   it 'allows admin to change bank account details' do
     pending 'actual case scenario, an address change'
     account = Stripe::Account.retrieve()
@@ -266,6 +332,16 @@ binding.pry # this call to pry must have no spaces in front of it and,
     account.address.state = "OR"
     account.address.postal_code = "12345"
     account.address.country = "US"
+    expect(ations).to be 'written'
+  end
+
+  # standalone, managed, or both ?
+  # verifies the name of the `recipient`* user is required by law
+  # *'recipient' is no longer used : replaced by `account`
+  it 'verifies the full legal name of the managed account user' do
+    pending 'have not finished : in Standalone Stripe may do this'
+    user = User.find_by_email('managed_account_user@example.com')
+    account = Stripe::Account.retrieve(user.account_id)
     expect(ations).to be 'written'
   end
 end
