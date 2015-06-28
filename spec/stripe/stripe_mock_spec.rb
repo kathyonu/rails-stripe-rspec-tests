@@ -10,8 +10,10 @@ describe StripeMock do
   it "reverts overriding stripe's request method" do
     StripeMock.start
     Stripe.request(:xtest, '/', 'abcde') # no error
+    expect { Stripe.request(:x, '/', 'abcde') }.to raise_error { |e|
+      expect(e.http_status).to eq 404
+    }
     StripeMock.stop
-    expect { Stripe.request(:x, '/', 'abcde') }.to raise_error
     end
 
   it "does not persist data between mock sessions" do
@@ -62,10 +64,15 @@ describe StripeMock do
 
     it "cannot be toggled when already started" do
       StripeMock.start
-      expect { StripeMock.toggle_live(true) }.to raise_error
+      expect { StripeMock.toggle_live(true) }.to raise_error { |e|
+        expect(e).to be_a(RuntimeError)
+      }
       StripeMock.stop
       StripeMock.instance_variable_set(:@state, 'remote')
-      expect { StripeMock.toggle_live(true) }.to raise_error
+      expect { StripeMock.toggle_live(true) }.to raise_error { |e|
+        expect(e).to be_a(RuntimeError)
+     #expect(e).to be_a(StripeMock::UnstartedStateError)
+      }
     end
   end
 
@@ -85,7 +92,9 @@ describe StripeMock do
     end
 
     it "throws an error on an unknown strategy" do
-      expect { StripeMock.create_test_helper(:lol) }.to raise_error
+      expect { StripeMock.create_test_helper(:lol) }.to raise_error { |e|
+        expect(e).to be_a(RuntimeError)
+      }
     end
 
     it "can configure the default strategy" do

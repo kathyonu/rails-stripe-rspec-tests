@@ -55,8 +55,8 @@ describe 'Stripe token' do
       expect(customer.id).to match /^test_cus/
      #expect(customer.subscriptions).to be nil
      #expect(customer.subscriptions.data).to be nil
-      customer.subscriptions { include[]=total_count }     # random verification of nothing existing
-      expect(customer.subscriptions.total_count).to eq 0   # random expection of nothing is existing
+      customer.subscriptions { include[]=total_count }
+      expect(customer.subscriptions.total_count).to eq 0
       expect(card.last4).to eq "4242"
       expect(card.exp_month).to eq 9
       expect(card.exp_year).to eq 2019
@@ -73,10 +73,7 @@ describe 'Stripe token' do
   end
 
   describe 'Stripe::Token' do
-    # currently checking live key arrangement and its running with $ rspec -t live
-   #it 'generates a card token created from customer' do
     it 'generates a card token created from customer', live: true do
-#binding.pry # delete the # to use pry, leaving no space at front of line 
       card_token = StripeMock.generate_card_token({
         source: {
           card_number: '4242424242424242',

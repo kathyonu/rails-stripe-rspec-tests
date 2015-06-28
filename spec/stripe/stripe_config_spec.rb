@@ -18,5 +18,4 @@ describe "Config Variables" do
         "Your STRIPE_PUBLISHABLE_KEY is not set, Please refer to the 'Configure the Stripe Initializer' section of the README"
     end
   end
-
 end

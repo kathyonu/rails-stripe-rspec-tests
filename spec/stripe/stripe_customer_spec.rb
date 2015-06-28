@@ -21,6 +21,7 @@ describe 'Customer API' do
     charge = Stripe::Charge.create({
       amount: 900,
       currency: "usd",
+      interval: 'month',
       source: stripe_helper.generate_card_token(last4: "1123", exp_month: 10, exp_year: 2017),
       description: "Charge for user@example.com",
       }, {
