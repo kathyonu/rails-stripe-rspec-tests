@@ -1,6 +1,6 @@
 describe UserMailer do
   describe '#expire_mail' do
-    let(:user) { FactoryGirl.create(:user) }
+    let(:user) { FactoryGirl.create(:user, email: 'johnny@appleseed.com') }
     let(:mail) { UserMailer.expire_email(user) }
 
     it "has the correct user email" do
@@ -9,12 +9,10 @@ describe UserMailer do
 
     it "has the correct senders email" do
       expect(mail.from).to eq(["do-not-reply@example.com"])
-     #expect(mail.from).to eq(["yourrealname@yourrealemailaddress.com"])
     end
 
     it "has the correct subject" do
       expect(mail.subject).to eq "Subscription Cancelled"
     end
-
   end
 end

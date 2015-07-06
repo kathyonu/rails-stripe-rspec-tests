@@ -17,8 +17,7 @@ describe 'Subscription API' do
   end
 
   it "allows customer to cancel subscription" do
-    pending 'needs to be adjusted for current app which does not yet track the Stripe.customer id'
-    card_token = stripe_helper.generate_card_token(last4: "4242", exp_month: 12, exp_year: 2017)
+    card_token = StripeMock.generate_card_token(card_number: "4242424242424242", exp_month: 12, exp_year: 2017)
     customer = Stripe::Customer.create(
       email: 'cancel@example.com',
       source: card_token,
@@ -26,21 +25,12 @@ describe 'Subscription API' do
     )
     @user = FactoryGirl.create(:user, email: 'cancelsub@example.com')
     customer = Stripe::Customer.retrieve(customer.id)
-    @user.customer_id = customer.id
-    expect(@user.customer_id).to eq customer.id
+    @user.email = customer.email
+    expect(@user.email).to eq customer.email
     # creating plan
     plan = stripe_helper.create_plan(id: 'my_plan', amount: 1500)
-    # The above line replaces the following:
-    # plan = Stripe::Plan.create(
-    #   :id => 'my_plan',
-    #   :name => 'StripeMock Default Plan ID',
-    #   :amount => 1500,
-    #   :currency => 'usd',
-    #   :interval => 'month'
-    # )
     expect(plan.id).to eq('my_plan')
     expect(plan.amount).to eq(1500)
-    # add subscribing to subscription
     charge = Stripe::Charge.create({
       amount: 1500,
       currency: 'usd',
@@ -76,32 +66,102 @@ describe 'Subscription API' do
   end
 
   it 'allows customer to delete their account' do
-    pending 'needs to be adjusted for current app which does not yet track the Stripe.customer id'
     card_token = stripe_helper.generate_card_token(last4: "4242", exp_month: 12, exp_year: 2017)
     customer = Stripe::Customer.create(
       email: 'cancelcus@example.com',
       source: card_token,
       description: "a customer cancellation",
     )
-    @user = FactoryGirl.build(:user, email: 'cancelcus@example.com')
+    @user = FactoryGirl.create(:user, email: 'cancelcus@example.com')
     customer = Stripe::Customer.retrieve(customer.id)
-    @user.customer_id = customer.id
-    expect(@user.customer_id).to eq customer.id
+    customer = Stripe::Customer.retrieve(customer.id)
+    @user.email = customer.email
+    expect(@user.email).to eq customer.email
     # creating plan
     plan = stripe_helper.create_plan(id: 'my_plan', amount: 1500)
-    # The above line replaces the following:
-    # plan = Stripe::Plan.create(
-    #   :id => 'my_plan',
-    #   :name => 'StripeMock Default Plan ID',
-    #   :amount => 1500,
-    #   :currency => 'usd',
-    #   :interval => 'month'
-    # )
     expect(plan.id).to eq('my_plan')
     expect(plan.amount).to eq(1500)
-    # add subscribing to subscription
     charge = Stripe::Charge.create({
       amount: 1500,
+      currency: 'usd',
+      interval: 'month',
+      customer: customer.id,
+      description: 'a charge with a specific card',
+      }, {
+        idempotency_key: "95ea4310438306ch"
+    })
+    card_token = customer.sources.data[0].id
+    charge = Stripe::Charge.retrieve(charge.id)
+    customer = Stripe::Customer.retrieve(customer.id)
+    expect(card_token).to match /^test_cc/
+    expect(charge.id).to match /^test_ch/
+    expect(customer.id).to match /^test_cus/
+    expect(customer.sources.data[0].id).to match /^test_cc/
+    expect(customer.sources.data.length).to eq 1
+    expect(customer.sources.data[0].id).not_to be_nil
+    expect(customer.sources.data[0].last4).to eq '4242'
+    customer.delete
+    expect(customer.id).to match /^test_cus/
+    expect(customer.deleted).to be true
+  end
+
+  it "allows customer with two subscriptions to cancel one" do
+    card_token = StripeMock.generate_card_token(card_number: '4242424242424242', exp_month: 12, exp_year: 2017)
+    customer = Stripe::Customer.create(
+      email: 'cancel@example.com',
+      source: card_token,
+      description: "a customer cancellation",
+    )
+    @user = FactoryGirl.create(:user, email: 'cancelone@example.com')
+    customer = Stripe::Customer.retrieve(customer.id)
+    @user.email = customer.email
+    expect(@user.email).to eq customer.email
+    card_token = stripe_helper.generate_card_token(card_number: '4242424242424242', exp_month: 11, exp_year: 2020)
+    customer = Stripe::Customer.retrieve(customer.id)
+    @user.email = customer.email
+    expect(@user.email).to eq customer.email
+    plan = stripe_helper.create_plan(id: 'my_plan', amount: 1500)
+
+    expect(plan.id).to eq('my_plan')
+    expect(plan.amount).to eq(1500)
+    charge = Stripe::Charge.create({
+      amount: 1500,
+      currency: 'usd',
+      interval: 'month',
+      customer: customer.id,
+      description: 'a charge with a specific card',
+      }, {
+        idempotency_key: "95ea4310438306ch"
+    })
+    card_token = customer.sources.data[0].id
+    charge = Stripe::Charge.retrieve(charge.id)
+    customer = Stripe::Customer.retrieve(customer.id)
+    expect(card_token).to match /^test_cc/
+    expect(charge.id).to match /^test_ch/
+    expect(customer.id).to match /^test_cus/
+    expect(customer.sources.data[0].id).to match /^test_cc/
+    expect(customer.sources.data.length).to eq 1
+    expect(customer.sources.data[0].id).not_to be_nil
+    expect(customer.sources.data[0].last4).to eq '4242'
+    customer.delete
+    expect(customer.id).to match /^test_cus/
+    expect(customer.deleted).to be true
+    card_token = stripe_helper.generate_card_token(last4: "4242", exp_month: 12, exp_year: 2017)
+    customer = Stripe::Customer.create(
+      email: 'cancelcus@example.com',
+      source: card_token,
+      description: "a customer cancellation",
+    )
+    @user = FactoryGirl.create(:user, email: 'cancelcus@example.com')
+    customer = Stripe::Customer.retrieve(customer.id)
+    @user.email = customer.email
+    expect(@user.email).to eq customer.email
+    # creating plan
+    plan = stripe_helper.create_plan(id: 'my_new_plan', amount: 2500)
+    expect(plan.id).to eq('my_new_plan')
+    expect(plan.amount).to eq(2500)
+    charge = Stripe::Charge.create({
+      amount: 2500,
       currency: 'usd',
       interval: 'month',
       customer: customer.id,

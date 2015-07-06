@@ -2,25 +2,11 @@ include Features::SessionHelpers
 include Warden::Test::Helpers
 Warden.test_mode!
 
-# Feature: Sign inRSpec.configure do |config|
-  config.mock_framework = :rspec
-  config.before(:all) do     # 20150123 added this block
-    FactoryGirl.reload 
-  end
-end
-
-RSpec.describe "mocking with RSpec", js: true do
-  it "passes when it should" do
-    user = double('user')
-    expect(user).to receive(:message)
-    user.message
-  end
-end
-    
+# Feature: Sign in
 #   As a user
 #   I want to sign in
 #   So I can visit protected areas of the site
-feature 'Sign in', :devise do
+feature 'User', :devise, js: true do
 
   before(:each) do
     FactoryGirl.reload 
@@ -34,9 +20,11 @@ feature 'Sign in', :devise do
   #   Given I do not exist as a user
   #   When I sign in with valid credentials
   #   Then I see an invalid credentials message
-  scenario 'user cannot sign in if not registered' do
+  scenario 'cannot sign in if not registered' do
     user = FactoryGirl.create(:user)
-    sign_in('unknown@example.com', 'please123')
+    visit new_user_session_path
+    expect(current_path).to eq '/users/sign_in'
+    sign_in('test@example.com', 'notmypassword')
     expect(page).to have_content 'Invalid email or password.'
     expect(page).to have_content I18n.t 'devise.failure.invalid', authentication_keys: 'email'
     expect(page).to have_content I18n.t 'devise.failure.not_found_in_database', authentication_keys: 'email'
@@ -47,13 +35,16 @@ feature 'Sign in', :devise do
   #   And I am not signed in
   #   When I sign in with valid credentials
   #   Then I see a success message
-  scenario 'user can sign in with valid credentials' do
+  scenario 'can sign in with valid credentials' do
     user = FactoryGirl.build(:user)
     user.role = 'admin'
     user.save!
+    visit new_user_session_path
     sign_in(user.email, user.password)
     expect(page).to have_content 'Signed in successfully.'
     expect(page).to have_content I18n.t 'devise.sessions.signed_in'
+    visit '/users'
+    expect(current_path).to eq '/users'
   end
 
   # Scenario: User cannot sign in with wrong email
@@ -61,11 +52,10 @@ feature 'Sign in', :devise do
   #   And I am not signed in
   #   When I sign in with a wrong email
   #   Then I see an invalid email message
-  scenario 'user cannot sign in with wrong email' do
-    user = FactoryGirl.build(:user)
-    user.add_role = 'admin'
-    user.save
-    sign_in('invalid@email.com', user.password)
+  scenario 'cannot sign in with wrong email' do
+    user = FactoryGirl.create(:user)
+    visit new_user_session_path
+    sign_in('invalid@example.com', 'user.password')
     expect(page).to have_content 'Invalid email or password.'
     expect(page).to have_content I18n.t 'devise.failure.invalid', authentication_keys: 'email'
     expect(page).to have_content I18n.t 'devise.failure.not_found_in_database', authentication_keys: 'email'
@@ -76,8 +66,11 @@ feature 'Sign in', :devise do
   #   And I am not signed in
   #   When I sign in with a wrong password
   #   Then I see an invalid password message
-  scenario 'user cannot sign in with wrong password' do
-    user = FactoryGirl.create(:user)
+  scenario 'cannot sign in with wrong password' do
+    user = FactoryGirl.build(:user)
+    user.role = 'admin'
+    user.save!
+    visit new_user_session_path
     sign_in(user.email, 'invalidpass')
     expect(page).to have_content 'Invalid email or password.'
     expect(page).to have_content I18n.t 'devise.failure.invalid', authentication_keys: 'email'

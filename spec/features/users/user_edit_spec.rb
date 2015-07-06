@@ -5,7 +5,7 @@ Warden.test_mode!
 #   As a user
 #   I want to edit my user profile
 #   So I can change my email address
-feature 'User edit', :devise do
+feature 'User edit', :devise, js: true do
 
   after(:each) do
     Warden.test_reset!
@@ -36,13 +36,18 @@ feature 'User edit', :devise do
   #   When I try to edit another user's profile
   #   Then I see my own 'edit profile' page
   scenario "user cannot cannot edit another user's profile", :user do
-    user = FactoryGirl.create(:user)
-    other = FactoryGirl.create(:user, email: 'other@example.com')
+    user = FactoryGirl.build(:user)
+    user.role = 'admin'
+    user.save!
+    other = FactoryGirl.build(:user, email: 'other@example.com')
+    other.role = 'admin'
+    user.save!
     login_as(user, scope: :user)
     visit edit_user_registration_path(other)
-    expect(page).to have_content 'Edit User'
+    expect(page).to have_content 'Account'
     expect(page).to have_field('Email', with: user.email)
     fill_in 'Email', with: 'anotherprofile@example.com'
+    fill_in 'Current password', with: other.password
     click_button 'Update'
     txt = I18n.t('devise.registrations.invalid')
     expect(txt).to eq "Invalid email or password."

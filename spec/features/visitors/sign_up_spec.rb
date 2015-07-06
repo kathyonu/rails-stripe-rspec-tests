@@ -1,41 +1,55 @@
+require 'stripe_mock'
+
 include Features::SessionHelpers
 include Warden::Test::Helpers
 Warden.test_mode!
 
-RSpec.describe 'User Sign in', :devise do
+RSpec.configure do |config|
 
-  before(:each) do
-    FactoryGirl.reload 
-    user = FactoryGirl.build(:user, email: 'test@example.com')
-    user.role = 'admin'
-    user.save!
+  config.before(:each) do
+    StripeMock.start
+    FactoryGirl.reload
   end
 
-  after(:each) do
+  config.after(:each) do
+    StripeMock.stop
     Warden.test_reset!
   end
+end
 
-  it 'cannot sign in if not registered' do
-    sign_in('testing@example.com', :'please122')
-    expect(page).to have_content 'Invalid email or password.'
-    expect(page).to have_content I18n.t 'devise.failure.not_found_in_database', authentication_keys: 'email'
+# Feature: Sign up
+#   As a visitor
+#   I want to sign up
+#   So I can visit protected areas of the site
+feature 'Sign Up', :devise, type: :controller, js: true do
+
+  before do
+    CreatePlanService.new.call
   end
 
-  it 'can sign in with valid credentials' do
-    sign_in('test@example.com', :'please123')
-    expect(current_path).to eq '/users'
-    expect(page).to have_content I18n.t 'devise.sessions.signed_in'
-    expect(page).to have_content 'Signed in successfully.'
+  # Scenario: Visitor can sign up with valid email address and password
+  #   Given I am not signed in
+  #   When I sign up with a valid email address and password
+  #   Then I see a successful sign up message
+  scenario 'visitor can sign up as a silver subscriber' do
+    pending 'signups need more work'
+    visit '/users/sign_up?plan=silver'
+    expect(current_path).to eq '/users/sign_up'
+    sign_up_silver
+    expect(page).to have_content 'Welcome! You have signed up successfully.'
   end
 
-  it 'cannot sign in with wrong email' do
-    sign_in('invalid@example.com', :'please123')
-    expect(page).to have_content 'Invalid email or password.'
+  scenario 'visitor can sign up as a gold subscriber' do
+    pending 'signups need more work'
+    visit '/users/sign_up?plan=gold'
+    expect(current_path).to eq '/users/sign_up'
+    sign_up_gold
+    expect(page).to have_content 'Welcome! You have signed up successfully.'
   end
 
-  it 'cannot sign in with wrong password' do
-    sign_in('test@example.com', :'invalidpass')
-    expect(page).to have_content 'Invalid email or password.'
-    expect(page).to have_content I18n.t 'devise.failure.not_found_in_database', authentication_keys: 'email'
+  scenario 'visitor can sign up as a platinum subscriber' do
+    pending 'signups need more work'
+    sign_up_platinum
+    expect(page).to have_content 'Welcome! You have signed up successfully.'
   end
 end

@@ -25,7 +25,6 @@ feature 'Sign out', :devise do
     sign_in(user.email, user.password)
     expect(page).to have_content 'Signed in successfully.'
     expect(page).to have_content I18n.t 'devise.sessions.signed_in'
-   #visit '/users/sign_out'
     click_link 'Sign out'
     expect(page).to have_content 'Signed out successfully.'
     expect(page).to have_content I18n.t 'devise.sessions.signed_out'
