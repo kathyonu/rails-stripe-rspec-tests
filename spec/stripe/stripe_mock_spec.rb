@@ -46,6 +46,7 @@ describe StripeMock do
     end
 
     it "does not start when live" do
+      StripeMock.instance_variable_set(:@state, 'ready')
       expect(StripeMock.state).to eq 'ready'
       StripeMock.toggle_live(true)
       expect(StripeMock.state).to eq 'live'
