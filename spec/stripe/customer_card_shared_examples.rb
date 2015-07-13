@@ -32,7 +32,7 @@ shared_examples "Multiple Customer Cards" do
     customer = Stripe::Customer.create(email: 'alice@bob.com', card: tok1.id)
     customer = Stripe::Customer.retrieve(customer.id)
     card = customer.sources.find do |existing_card|
-    existing_card.fingerprint == tok2.card.fingerprint
+      existing_card.fingerprint == tok2.card.fingerprint
     end
     expect(card).to be_nil
   end
