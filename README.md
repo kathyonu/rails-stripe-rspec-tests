@@ -2,6 +2,8 @@
 ##### Testing framework including (eventually) all Stripe processes tested
 ##### For testing user interactions for subscription memberships, products sales, application webhoooks, etc.
 
+[![Join the chat at https://gitter.im/kathyonu/rails-stripe-rspec-tests](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kathyonu/rails-stripe-rspec-tests?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 This respository of Tests Only is being built specifically for testing our live in production app.
 
 These tests are designed to test the Ruby 2.2.2 on Rails 4.2.1 rails-stripe-memberships-saas using only Stripe codes, Stripe tests, Stripe webhooks, and we make heavy use the [stripe-ruby-mock](https://github.com/rebelidealist/stripe-ruby-mock) gem to make testing Stripe easy peasy lemon squeezy.
