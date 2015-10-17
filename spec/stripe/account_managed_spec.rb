@@ -1,6 +1,7 @@
 # these tests are NOT quite ready for prime time
 # these tests have NOT yet been run against a working app with accounts in place to be tested
 # this file may still contain duplicates among the account tests, refactoring those out will occur
+=begin
 require 'pry'
 
 include Warden::Test::Helpers
@@ -23,24 +24,24 @@ describe 'Account API', type: :controller, live: true do
     Warden.test_reset!
   end
 
-  ### Managed Accounts : https://stripe.com/docs/connect/managed-accounts
-  ### to see country codes available : https://stripe.com/global
+  # Managed Accounts : https://stripe.com/docs/connect/managed-accounts
+  # to see country codes available : https://stripe.com/global
   it 'allows managed account to be created with just the country code' do
     pending 'not creating account, and response expectation is not correct'
     managed_account = Stripe::Account.create(
       managed: true,
       country: 'US'
     )
-#binding.pry # this call will open your console in Pry, in the test environment
-             # this call can be moved anywhere inside an `it do` block
-             # once you have the test passing, remove the binding.pry call
+    # binding.pry # this call will open your console in Pry, in the test environment
+    # this call can be moved anywhere inside an `it do` block
+    # once you have the test passing, remove the binding.pry call
     expect(response).to be_a Stripe::Account
-    expect(account.id).to match /^acct\_/
+    expect(account.id).to match(/^acct\_/)
     expect(account.managed).to be true
   end
 
-  ### Managed Accounts : Authentication via API keys
-  ### Reference        : https://stripe.com/docs/connect/authentication
+  # Managed Accounts : Authentication via API keys
+  # Reference        : https://stripe.com/docs/connect/authentication
   it 'authenticates managed account using API keys' do
     pending 'not creating account, and response expectation is probably not correct'
     Stripe.api_key = ENV['STRIPE_API_KEY']
@@ -49,9 +50,9 @@ describe 'Account API', type: :controller, live: true do
       country: 'US'
     })
     expect(response).to be_a Stripe::Account
-    expect(account.id).to match /^acct\_/
-    expect(account.keys.secret).to match /^sk_live\_/
-    expect(account.keys.publishable).to match /^pk_live\_/
+    expect(account.id).to match(/^acct\_/)
+    expect(account.keys.secret).to match(/^sk_live\_/)
+    expect(account.keys.publishable).to match(/^pk_live\_/)
     expect(account.managed).to be true
   end
 
@@ -95,10 +96,17 @@ describe 'Account API', type: :controller, live: true do
   it 'retrieves all bank accounts attached to this account' do
     pending 'this should now pass'
     account = Stripe::Account.retrieve()
-    account.bank_accounts { include[]=total_count }
-    expect(account.bank_accounts.total_count).to eq 1
-    expect(account.bank_accounts.data.first.id).to match /^ba\_/
-  end
+    account.external_accounts { include[]=total_count } # this line is probably no longer required, #TODO: test it
+    expect(account.external_accounts.total_count).to eq 1
+    expect(account.external_accounts.data.first.id).to match /^ba\_/
+    # Ref for new above from old below: 20151015
+    # https://stripe.com/docs/upgrades?since=2015-09-08#api-changelog
+    # "bank_accounts is no longer a field in the Account object.
+    # Use external_accounts instead. Also, bank_account"
+    # will be replaced by external_account in fields_needed.
+    # account.bank_accounts { include[]=total_count }
+    # expect(account.bank_accounts.total_count).to eq 1
+    # expect(account.bank_accounts.data.first.id).to match /^ba\_/  end
 
   it 'shows if stripe will attempt to reclaim negative balances from this account' do
     account = Stripe::Account.retrieve()
@@ -137,8 +145,8 @@ describe 'Account API', type: :controller, live: true do
     account = Stripe::Account.retrieve()
     acceptance_details = account.tos_acceptance
     expect(acceptance_details.date).to_not be nil            # to verify you have an account, and terms have been accepted
-    expect(acceptance_details.ip).to match /your_ip_address/  # ip address you used to accept stripe's terms of service
-    expect(acceptance_details.user_agent).to match /Firefox/  # browser you used to sign up with stripe
+    expect(acceptance_details.ip).to match(/your_ip_address/)  # ip address you used to accept stripe's terms of service
+    expect(acceptance_details.user_agent).to match(/Firefox/)  # browser you used to sign up with stripe
   end
 
   ### if you have montlhy payouts, use this test and comment out the next two
@@ -180,12 +188,12 @@ describe 'Account API', type: :controller, live: true do
     account_verification = account.verification
     expect(account_owner).to eq "Your Account Name"
     if expect(account_verification.status).to eq "pending" || "unverified"
-      expect(account_verification.document.id).to match /^file\_/
+      expect(account_verification.document.id).to match(/^file\_/)
       expect(account_verification.details).to eq nil
     end
     if expect(account_verification.status).to eq "failed"
-      expect(account_verification.document.id).to_not match /^file\_/    # code smell
-      expect(account_verification.details).to_not match "^[a-zA-Z0-9]+$" # code smell
+      expect(account_verification.document.id).to_not match(/^file\_/)    # code smell
+      expect(account_verification.details).to_not match("^[a-zA-Z0-9]+$") # code smell
     end
   end
 
@@ -204,36 +212,36 @@ describe 'Account API', type: :controller, live: true do
   # https://stripe.com/docs/testing
   it 'verifies our platform can interact with account user bank account' do
     account = Stripe::Account.retrieve(account_number: '000123456789')
-    expect(response).to match /^succeeded/  # not sure of this yet
+    expect(response).to match(/^succeeded/)  # not sure of this yet
     transfer = Stripe::Account.transfer(account_number: '000123456789', amount: 100)
-    expect(response).to match /^succeeded/
+    expect(response).to match(/^succeeded/)
   end
 
   # verifies unsuccessful bank account numbers cannot transfer funds
   # https://stripe.com/docs/testing
   it 'verifies our platform can interact with account user bank account' do
     account = Stripe::Account.retrieve(account_number: '000111111116')
-    expect(response).to match /^no_account/
+    expect(response).to match(/^no_account/)
     transfer = Stripe::Account.transfer(account_number: '000111111116', amount: 100)
-    expect(response).to match /^no_account/
+    expect(response).to match(/^no_account/)
   end
 
   # verifies unsuccessful bank account numbers cannot transfer funds
   # https://stripe.com/docs/testing
   it 'verifies non-existent account user bank account fails' do
     account = Stripe::Account.retrieve(account_number: '000111111113')
-    expect(response).to match /^account_closed/
+    expect(response).to 'match(/^account_closed/)
     transfer = Stripe::Account.transfer(account_number: '000111111113', amount: 100)
-    expect(response).to match /^account_closed/
+    expect(response).to 'match(/^account_closed/)
   end
 
   # verifies unsuccessful debit card numbers cannot receive funds
   # https://stripe.com/docs/testing
   it 'verifies non-existent account user debit card account fails' do
     account = Stripe::Account.retrieve(account_number: 'get-right-number-for-testing-debit-card')
-    expect(response).to match /^no_account/
+    expect(response).to 'match(/^no_account/)
     transfer = Stripe::Account.transfer(account_number: 'get-right-number-for-testing', amount: 100)
-    expect(response).to match /^no_account/
+    expect(response).to 'match(/^no_account/)
   end
 
   ### standalone managed or both ? on the next two tests
@@ -262,7 +270,7 @@ describe 'Account API', type: :controller, live: true do
   ### Transfer failures that can be tested 
   ### The reason a given transfer failed is available in the failure_code attribute of a Transfer object
   ### This is a list of all the types of failure codes Stripe currently send : as of 20150611
-  ### Stripe may add more at any time, so you shouldn't rely on only these failure codes existing in your code. 
+  ### Stripe may add more at any time, so you shouldn't rely on only these failure codes existing in your code.
   it 'insufficient_funds' do
     pending 'write the code'
   end
@@ -297,6 +305,9 @@ describe 'Account API', type: :controller, live: true do
   end
 
   it 'bank_account_restricted' do
+  # should above now be written as below ? : https://stripe.com/docs/upgrades?since=2015-09-08#api-changelog
+  # answer is NO as it is still valid and used only in transfers : https://stripe.com/docs/api#transfer_failures
+  # it 'external_account_restricted' do
     pending 'write the code'
   end
 
@@ -316,8 +327,8 @@ describe 'Account API', type: :controller, live: true do
     # 
     # Note on the above TRANSFER_ID :
     # To retrieve a transfer_id, we need to have created one, a transfer that is, so it has an ID.
-    # expect(response).to match /^trr\_/
-    # expect(tr.id).to match /^tr\_/
+    # expect(response).to 'match(/^trr\_/)
+    # expect(tr.id).to 'match(/^tr\_/)
     # transfer_reversal = Stripe::TransferReversal.retrieve(reversal.id)
     # expect(ations).to be 'needs more work'
   end
@@ -345,3 +356,4 @@ describe 'Account API', type: :controller, live: true do
     expect(ations).to be 'written'
   end
 end
+=end
