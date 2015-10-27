@@ -1,7 +1,7 @@
 # not all gems that will be required are listed yet
 source 'https://rubygems.org'
 gem 'rails', '4.2.4'
-ruby '2.2.2'
+ruby '2.2.3'
 group :development do
   gem 'better_errors'
   gem 'quiet_assets'
