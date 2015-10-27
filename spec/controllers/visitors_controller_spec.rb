@@ -12,13 +12,6 @@ describe VisitorsController do
       expect(response.status).to eq 200
       visit '/visitors'
       expect(current_path).to eq '/visitors'
-      # commented are possible tools for later use,
-      # post :create, visitor: { email: 'index@example.com' }
-      # visitor = FactoryGirl.create(:visitor, email: 'index@exmaple.com')
-      # expect(response.request.fullpath).to eq '/visitors?email=index%40example.com'
-      # expect(response.request.fullpath).to eq '/visitors?visitor%5Bemail%5D=index%40example.com'
-      # visit '/visitors?' + "#{visitor.email}"
-      # expect(response.request.fullpath).to eq '/visitors?'' + "#{visitor.email}"
     end
 
     it 'failure for visitor without email' do
@@ -29,10 +22,6 @@ describe VisitorsController do
         expect(e.message).to match(/Validation failed: Email is invalid/i)
         expect(e.message).to include 'Validation failed: Email is invalid'
       }
-      get :index
-      expect(response).to render_template('index')
-      expect(response).to be_success
-      expect(response.request.fullpath).to eq '/visitors'
     end
   end
 
