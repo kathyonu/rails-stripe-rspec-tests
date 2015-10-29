@@ -9,9 +9,7 @@ describe VisitorsController do
   context 'GET #index' do
     it 'success for visitor with email' do
       get :index
-      expect(response.status).to eq 200
-      visit '/visitors'
-      expect(current_path).to eq '/visitors'
+      expect(response.status).to eq 302
     end
 
     it 'failure for visitor without email' do
