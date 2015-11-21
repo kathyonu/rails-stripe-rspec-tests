@@ -15,12 +15,17 @@ We have developed[Daniel Kehoe's](https://github.com/RailsApps) original Rails 3
 Currently, you can see most of these tests in a working application at our [truenorth branch](https://github.com/kathyonu/rails-stripe-membership-saas/tree/truenorth). NOTE of 20151121 : We have several months worth of improvements and additions we will be pushing to the truenorth fork in the very near future. Last I looked we had 382 RSpec tests passing in our production app. When we are doing doing that, this note will disappear.
 
 We are converting the tests to the new usage of RSpec formatting, for example:  
-old: expect(response.status).to eq(302)
+
+old: expect(response.status).to eq(302)  
 new: expect(response.status).to eq 302
 
-old: expect(customer.description).to eq('a customer description')
+old: expect(customer.description).to eq('a customer description')  
 new: expect(customer.description).to eq 'a customer description'
 
-We have found two exceptions to not using the parenthesis, they are required for the tests to work. When using a **.to match(//)** and when matching a Hash:
-  **expect(customer.id).to match(/^test_cus/)**
+We have found two exceptions to not using the parenthesis, they are required for the tests to work.  
+
+When using a **.to match(//)** and  
+when matching a Hash:  
+
+  **expect(customer.id).to match(/^test_cus/)**  
   **expect(response.request.cookies).to eq({})**
