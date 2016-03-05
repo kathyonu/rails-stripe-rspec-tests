@@ -1,11 +1,8 @@
-require 'pry'
 require 'stripe_mock'
-
 include Warden::Test::Helpers
 Warden.test_mode!
 
 describe 'Stripe Customer Webhooks' do
-
   let(:stripe_helper) { StripeMock.create_test_helper }
 
   before(:each) do
@@ -17,119 +14,91 @@ describe 'Stripe Customer Webhooks' do
     Warden.test_reset!
   end
 
-  it "mocks a stripe webhook" do
-    # a customer.created event will have the same information as retrieving the relevant customer would
-    # https://stripe.com/docs/api#retrieve_event
+  it 'mocks a stripe webhook', live: true do
+    # source reference for mock_webhook_event method:
+    # https://github.com/rebelidealist/stripe-ruby-mock/blob/master/lib/stripe_mock/api/webhooks.rb
     event = StripeMock.mock_webhook_event('customer.created')
+    expect(event.object).to eq 'event'
+    expect(event.data.object).to be_a Stripe::Customer
+    expect(event.data.object.object).to eq 'customer'
+    expect(event.data.object.id).to match(/^cus_/)
 
-    customer_event_data_object = event.data.object
-    expect(customer_event_data_object.id).to_not be_nil
+    # a customer.created event will have the same information
+    # as retrieving the relevant customer would have
+    # https://stripe.com/docs/api#retrieve_event
+    verified_event = Stripe::Event.retrieve(event.id)
+    customer_object = verified_event.data.object
+    expect(customer_object.id).to be_a String
+    expect(customer_object.id).to be_truthy
+    expect(customer_object.id).to match(/^cus_/)
+    expect(customer_object.default_card).to match(/^cc_/)
+    expect(customer_object.sources).to be_truthy
+    expect(customer_object.sources.count).to eq 1
+    expect(verified_event.id).to match(/^test_evt_/)
+    expect(verified_event.type).to eq 'customer.created'
 
     customer = Stripe::Customer.create(email: 'customer@example.com')
     customer_id = customer.id
-    customer.subscriptions { include[]=total_count }
-    user = Stripe::Customer.retrieve(customer_id)
-    expect(user.sources.object).to eq 'list'
-    expect(user.default_source).to eq nil
-    expect(user.sources.url).to match /^\/v1\/customers\/test_cus\_.+\/sources/
-    event.data.object { include[]=sources }
-    expect(event.data.object.cards { include=total_count }).to be_truthy
-    expect(event.data.object.default_card).to match /^cc\_/    # ? out of date stripe_mock
-   #expect(event.data.object.default_source).to match /^cc\_/  # fails
-    event.data { include[]=cards }                             # ? out of date stripe_mock
-    expect(event.data { include=object }).to be_truthy
-    expect(event.data.object { include=cards }).to be_truthy
-    expect(event.id).to match /^test_evt/
-    expect(event.data.object.id).to match /^cus\_/
-    expect(event.data.object[:id]).to match /^cus\_/
-    expect(event.data.object.object).to eq 'customer'
-    expect(event.data.object.livemode).to be false
-    expect(event.data.object.description).to be nil
-    expect(event.data.object.email).to eq 'bond@mailinator.com'
-    expect(event.data.object.delinquent).to be true
-    event.data.object.cards { include=data }
-    expect(event.data.object.cards { include=data }).to be_truthy
-    expect(event.data.object.cards.count).to eq 1
-    expect(event.data.object.cards.data.first[:id]).to match /^cc\_/
-    expect(event.data.object.cards.data.first[:customer]).to match /^cus\_/
-    expect(event.data.object.cards.data.first[:last4]).to eq '0341'
-    expect(event.data.object.cards.data.first[:type]).to eq 'Visa'
-    expect(event.data.object.cards.data.first[:funding]).to eq 'credit'
-    expect(event.data.object.cards.data.first.exp_month).to eq 12
-    expect(event.data.object.cards.data.first.exp_year).to eq 2013
-    expect(event.data.object.cards.data.first.fingerprint).to_not be nil
-    expect(event.data.object.cards.data.first.customer).to match /^cus\_/
-    expect(event.data.object.cards.data.first.country).to eq 'US'
-    expect(event.data.object.cards.data.first.name).to eq 'Johnny Goodman'
-    expect(event.data.object.cards.data.first.address_line1).to be nil
-    expect(event.data.object.cards.data.first.address_line2).to be nil
-    expect(event.data.object.cards.data.first.address_city).to be nil
-    expect(event.data.object.cards.data.first.address_state).to be nil
-    expect(event.data.object.cards.data.first.address_zip).to be nil
-    expect(event.data.object.cards.data.first.address_country).to be nil
-    expect(event.data.object.cards.data.first.cvc_check).to eq 'pass'
-    expect(event.data.object.cards.data.first.address_line1_check).to be nil
-    expect(event.data.object.cards.data.first.address_zip_check).to be nil
-   #customer.subscriptions { include[]=total_count }
-#fails expect(event.data.object.cards.id).to match /^cc\_/
-#fails expect(event.sources.data.id).to match /^cc\_/
-#fails expect(event.data.object.cards.default_card).to match /^cc\_/
-#fails expect(event.data.object.sources.default_card).to match /^cc\_/
-#fails expect(event.data.object.sources.default_source).to match /^cc\_/
-#fails expect(customer.object.default_card).to match /^cc\_/
+    expect(customer.subscriptions.total_count).to eq 0
 
-#fails expect(event.data.object.cards.data[:object]).to eq 'card'
-#fails expect(event.data.object.cards.data).to eq 'card'
-#fails expect(event.data.object.cards.data).to match /^cc\_/
-#    expect(event.data.object.cards.data[1]).to match /^cc\_/ # => nil
-    expect(event.data.object.object).to eq 'customer'
-    expect(event.data.object.livemode).to be false
-    expect(event.data.object.description).to be nil
-   #expect(event.data.object.email).to eq 'event_webhook@example.com'
-    expect(event.data.object.email).to eq 'bond@mailinator.com'   # ? out of date stripe_mock
-    expect(event.data.object.delinquent).to be true
-   #expect(event.data.object.metadata).to match /^Stripe::StripeObject/
-    expect(event.data.object.subscription).to be nil
-    expect(event.data.object.discount).to be nil
-    expect(event.data.object.discount).to be nil
-    expect(event.data.object.account_balance).to eq 0 
-    expect(event.data.object.cards.object).to eq 'list' 
-    expect(event.id).to match /^test_evt\_/
-    expect(event.created).to_not be nil
-    expect(event.livemode).to eq false
-    expect(event.type).to eq 'customer.created'
-    expect(event.object).to eq 'event'
-    expect(event.data.object.account_balance).to eq 0
-    expect(event.data.object.cards.object).to eq 'list'
-    expect(event.data.count).to eq 1
-    expect(event.url).to match /\/v1\/events\/test_evt_/
-    expect(event.data.object.cards).to_not be_nil
-    expect(event.data.object.cards.data.first[:id]).to match /^cc\_/
-    expect(event.data.object.cards.data.first[:last4]).to eq '0341'
-    expect(event.data.object.cards.data.first[:type]).to eq 'Visa'
-    expect(event.data.object.cards.data.first[:brand]).to eq 'Visa'
-    expect(event.data.object.cards.data.first[:funding]).to eq 'credit'
-    expect(event.data.object.cards.data.first[:exp_month]).to eq 12
-    expect(event.data.object.cards.data.first[:exp_year]).to eq 2013  # out of date stripe_mock
-   #expect(event.data.object.cards.data.first[:exp_year]).to eq 2019
-    expect(event.data.object.cards.data.first[:fingerprint]).to_not be nil
-    expect(event.data.object.cards.data.first[:customer]).to match /^cus\_/
-    expect(event.data.object.cards.data.first[:country]).to eq 'US'
-    expect(event.data.object.cards.data.first[:name]).to eq 'Johnny Goodman'
-    expect(event.data.object.cards.data.first[:address_line1]).to eq nil
-    expect(event.data.object.cards.data.first[:address_line2]).to eq nil
-    expect(event.data.object.cards.data.first[:address_city]).to eq nil
-    expect(event.data.object.cards.data.first[:address_state]).to eq nil
-    expect(event.data.object.cards.data.first[:address_zip]).to eq nil
-    expect(event.data.object.cards.data.first[:address_country]).to eq nil
-    expect(event.data.object.cards.data.first[:cvc_check]).to eq 'pass'
-    expect(event.data.object.cards.data.first[:address_line1_check]).to eq nil
-    expect(event.data.object.cards.data.first[:address_zip_check]).to eq nil
-    customer_object = event.data.object
-    expect(customer_object.id).to_not be_nil
-    expect(customer_object.default_card).to_not be_nil        # ? out of date stripe_mock
-   #expect(customer_object.default_source).to_not be_nil
-    expect(customer_object.default_card).to match /^cc\_/   # ? out of date stripe_mock
-   #expect(customer_object.default_source).to match /^cc\_/
+    customer = Stripe::Customer.retrieve(customer_id)
+    expect(customer.sources.object).to eq 'list'
+    expect(customer.default_source).to eq nil
+    expect(customer.sources.url).to match(/^\/v1\/customers\/test_cus\_.+\/sources/)
+    # card below is created in StripeMock.mock_webhook_event above
+    # see https://github.com/rebelidealist/stripe-ruby-mock/blob/master/lib/stripe_mock/api/webhooks.rb
+    expect(verified_event.data.object.default_card).to match(/^cc\_/)
+    expect(verified_event.data.object).to be_truthy
+    expect(verified_event.id).to match(/^test_evt/)
+    expect(verified_event.data.object.id).to match(/^cus\_00000000000000/)
+    expect(verified_event.data.object[:id]).to match(/^cus\_00000000000000/)
+    expect(verified_event.data.object.object).to eq 'customer'
+    expect(verified_event.data.object.livemode).to be false
+    expect(verified_event.data.object.description).to be nil
+    expect(verified_event.data.object.email).to eq 'bond@mailinator.com'
+    expect(verified_event.data.object.delinquent).to be true
+    expect(verified_event.data.object.metadata).to be_a Stripe::StripeObject
+    expect(verified_event.data.object.subscription).to be nil
+    expect(verified_event.data.object.discount).to be nil
+    expect(verified_event.data.object.discount).to be nil
+    expect(verified_event.data.object.account_balance).to eq 0
+    expect(verified_event.data.object.sources.object).to eq 'list'
+    expect(verified_event.id).to match(/^test_evt\_/)
+    expect(verified_event.created).to_not be nil
+    expect(verified_event.livemode).to eq false
+    expect(verified_event.type).to eq 'customer.created'
+    expect(verified_event.object).to eq 'event'
+    expect(verified_event.data.object.account_balance).to eq 0
+    expect(verified_event.data.count).to eq 1
+    expect(verified_event.url).to match(/\/v1\/events\/test_evt_/)
+    expect(verified_event.data.object.email).to eq 'bond@mailinator.com'
+    expect(verified_event.data.object.sources.data).to_not be_nil
+    expect(verified_event.data.object.sources.data).to be_truthy
+    # Note these next two are same test called in different manner.
+    expect(verified_event.data.object.sources.data[0][:id]).to match(/^cc\_/)
+    expect(verified_event.data.object.sources.data.first[:id]).to match(/^cc\_/)
+    expect(verified_event.data.object.sources.data.count).to eq 1
+    expect(verified_event.data.object.sources.data.first[:fingerprint]).to_not be nil
+    expect(verified_event.data.object.sources.data.first[:customer]).to match(/^cus\_/)
+    expect(verified_event.data.object.sources.data.first[:name]).to eq 'Johnny Goodman'
+    # Note this next line passes if you do not give your card creation a current exp_year.
+    # The reason for this is the StipeMock.gen_card_tk method returns the year as 2013.
+    expect(verified_event.data.object.sources.data.first[:country]).to eq 'US'
+    expect(verified_event.data.object.sources.data.first[:address_line1]).to eq nil
+    expect(verified_event.data.object.sources.data.first[:address_line2]).to eq nil
+    expect(verified_event.data.object.sources.data.first[:address_city]).to eq nil
+    expect(verified_event.data.object.sources.data.first[:address_state]).to eq nil
+    expect(verified_event.data.object.sources.data.first[:address_zip]).to eq nil
+    expect(verified_event.data.object.sources.data.first[:address_country]).to eq nil
+    expect(verified_event.data.object.sources.data.first[:last4]).to eq '0341'
+    expect(verified_event.data.object.sources.data.first[:type]).to eq 'Visa'
+    expect(verified_event.data.object.sources.data.first[:funding]).to eq 'credit'
+    expect(verified_event.data.object.sources.data.first[:exp_month]).to eq 12
+    expect(verified_event.data.object.sources.data.first[:exp_year]).to eq 2013
+    # TODO: fix this so the exp_year from stripe-ruby-mock is 2019 aka valid card.
+    # expect(verified_event.data.object.sources.data.first.exp_year).to eq 2019
+    expect(verified_event.data.object.sources.data.first[:cvc_check]).to eq 'pass'
+    expect(verified_event.data.object.sources.data.first[:address_line1_check]).to eq nil
+    expect(verified_event.data.object.sources.data.first[:address_zip_check]).to eq nil
   end
 end
