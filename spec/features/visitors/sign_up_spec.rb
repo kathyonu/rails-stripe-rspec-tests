@@ -52,4 +52,29 @@ feature 'Sign Up', :devise, type: :controller, js: true do
     sign_up_platinum
     expect(page).to have_content 'Welcome! You have signed up successfully.'
   end
+
+  # another system's tests
+
+  # Scenario: Visitor can sign up with valid email address and password
+  #   Given I am not signed in
+  #   When I sign up with a valid email address and password
+  #   Then I see a successful sign up message
+  scenario 'visitor can sign up with valid email address and password' do
+    pending 'needs work, Devise message not showing on page redirected to, yet shows on edit!'
+    sign_up_with('test@example.com', 'please123', 'please123')
+    txts = [I18n.t('devise.registrations.signed_up'), I18n.t('devise.registrations.signed_up_but_unconfirmed')]
+    expect(page).to have_content(/.*#{txts[0]}.*|.*#{txts[1]}.*/)
+  end
+
+  # Scenario: Visitor cannot sign up with invalid email address
+  #   Given I am not signed in
+  #   When I sign up with an invalid email address
+  #   Then I see an invalid email message
+  scenario 'visitor cannot sign up with invalid email address' do
+    sign_up_with('bogus', 'please123', 'please123')
+    expect(page).to have_content ' Please review the problems below'
+    expect(page).to have_content ' Email is invalid'
+    expect(page).to have_content ' 8 characters minimum'
+    expect(page).to have_content ' Already have an account ? Log in'
+  end
 end
