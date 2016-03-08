@@ -54,5 +54,15 @@ module Features
     def sign_out
       visit '/users/sign_out'
     end
+
+    # used in spec/controllers/visitors_controller_spec.rb
+    # root_path = /visitors/new
+    def visitor_sign_up_for_ebook(visitor_email)
+      visit root_path
+      fill_in 'Email', with: visitor_email
+      #fill_in 'Password', with: password                    # not used, not required
+      #fill_in 'Password confirmation', with: confirmation   # not used, not required
+      click_button 'Sign up for free ebook'
+    end
   end
 end
