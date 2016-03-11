@@ -1,7 +1,10 @@
+include Features::SessionHelpers
 include Warden::Test::Helpers
 Warden.test_mode!
 
-describe VisitorsController do
+describe VisitorsController, js: true do
+  render_views
+
   after(:each) do
     Warden.test_reset!
   end
@@ -12,6 +15,7 @@ describe VisitorsController do
       expect(response.status).to eq 200
     end
 
+    # this test is duplicated further below under different context
     it 'failure for visitor without email' do
       visitor = FactoryGirl.build(:visitor)
       visitor.email = 'broken@example'
@@ -26,6 +30,7 @@ describe VisitorsController do
   # visitor cannot gain access to restricted content
   context 'cannot visit sequences' do
     it 'visitor cannot interact with sequences' do
+      visitor = FactoryGirl.create(:visitor)
       visit '/sequences'
       expect(response.status).to eq 200
       expect(current_path).to eq '/users/sign_in'
@@ -34,8 +39,6 @@ describe VisitorsController do
 
   # As a new visitor to the site
   # I can arrive on the home page
-  # root_path = /visitors/new
-  # visitor with email is directed to /visitors/index
   context 'GET #new' do
     it 'success for new visitor arrival' do
       get :new
@@ -56,7 +59,9 @@ describe VisitorsController do
   # As a new visitor to the site
   # When I enter my email address to receive free ebook
   # Then I am sent to proper page, based on email format and presence
-  context 'GET #show the manuscript' do
+  # root_path = /visitors/new
+  # visitor with email is directed to /visitors/index
+  context 'GET #index to show the manuscript' do
     it 'success for visitor with email' do
       # method is in spec/support/helpers/session_helpers.rb
       visitor_sign_up_for_ebook('iam@example.com')
@@ -66,11 +71,7 @@ describe VisitorsController do
       expect(response.header['X-Content-Type-Options']).to eq 'nosniff'
       expect(response.request.cookies).to eq({})
       expect(current_path).to match(/visitors/)
-      # expect(current_path).to eq '/visitors/2'
-      # expect(current_path).to eq '/visitors'
     end
-  end
-
 
     it 'failure for visitor without email' do
       visitor_sign_up_for_ebook('')

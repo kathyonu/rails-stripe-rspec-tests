@@ -97,6 +97,7 @@ module Features
 
     # used in spec/controllers/visitors_controller_spec.rb
     # root_path = /visitors/new
+    # visitor with email is directed to /visitors/index
     def visitor_sign_up_for_ebook(visitor_email)
       visit root_path
       fill_in 'Email', with: visitor_email
@@ -112,4 +113,3 @@ module Features
       click_button 'Sign up for free ebook'
     end
   end
-end

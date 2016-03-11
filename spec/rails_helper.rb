@@ -15,7 +15,7 @@ require 'email_spec'
 require 'sucker_punch'
 require 'thin'
 ARGV = [] # Reset ARGV so Dante will quit using rspec params : ingore the warning for now.
-StripeMock.spawn_server # : Note, leaving uncommented to test our next live tests run : 20150611
+StripeMock.spawn_server # : Note, leaving uncommented to test our live tests 
 # Note of 20150613 : it again appears this spawn_server must be toggled, itself, for live test to run
 # StripeMock.spawn_server : Note it appears this command above must be commented out when running $ rspec -t live
 
