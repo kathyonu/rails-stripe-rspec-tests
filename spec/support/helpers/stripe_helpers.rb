@@ -42,7 +42,7 @@ module StripeHelpers
       it 'prepares a card error' do
         StripeMock.prepare_card_error(:card_declined, :new_charge)
         cus = Stripe::Customer.create email: 'alice@example.com'
-        card: stripe_helper.generate_card_token(number: '4242424242424242', brand: 'Visa')
+        card = stripe_helper.generate_card_token(number: '4242424242424242', brand: 'Visa')
         expect { charge = Stripe::Charge.create(
           amount: 900,
           currency: 'usd',
