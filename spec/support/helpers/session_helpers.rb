@@ -1,38 +1,38 @@
 module Features
   module SessionHelpers
-
-    def sign_up_silver
-      fill_in 'Email', with: 'silver@johnnyappleseed.com'
-      fill_in 'Password', with: 'please123'
-      fill_in 'Password confirmation', with: 'please123'
-      fill_in 'card_number', with: '4242424242424242'
-      fill_in 'card_code', with: '123'
-      select 10, from: 'date_month'
-      select 2020, from: 'date_year'
+    def sign_up_silver(email, password, confirmation)
+      visit '/users/sign_up?plan=silver'
+      fill_in 'Email', with: email
+      fill_in :user_password, with: password
+      fill_in :user_password_confirmation, with: confirmation
+      fill_in :card_number, with: '4242424242424242'
+      fill_in :card_code, with: '123'
+      select 10, from: 'card_month'
+      select 2020, from: 'card_year'
       click_button 'Sign up'
     end
 
-    def sign_up_gold
+    def sign_up_gold(email, password, confirmation)
       visit '/users/sign_up?plan=gold'
-      fill_in 'Email', with: 'tester@example.com'
-      fill_in 'Password', with: 'please123'
-      fill_in 'Password confirmation', with: 'please123'
-      fill_in 'card_number', with: '4242424242424242'
-      fill_in 'card_code', with: '123'
-      select 11, from: 'date_month'
-      select 2021, from: 'date_year'
+      fill_in :user_email, with: email
+      fill_in :user_password, with: password
+      fill_in :user_password_confirmation, with: confirmation
+      fill_in :card_number, with: '4242424242424242'
+      fill_in :card_code, with: '123'
+      select 11, from: 'card_month'
+      select 2021, from: 'card_year'
       click_button 'Sign up'
     end
 
-    def sign_up_platinum
+    def sign_up_platinum(email, password, confirmation)
       visit '/users/sign_up?plan=platinum'
-      fill_in 'Email', with: 'testers@example.com'
-      fill_in 'Password', with: 'please123'
-      fill_in 'Password confirmation', with: 'please123'
-      fill_in 'card_number', with: '4242424242424242'
-      fill_in 'card_code', with: '123'
-      select 12, from: 'date_month'
-      select 2022, from: 'date_year'
+      fill_in :user_email, with: email
+      fill_in :user_password, with: password
+      fill_in :user_password_confirmation, with: confirmation
+      fill_in :card_number, with: '4242424242424242'
+      fill_in :card_code, with: '123'
+      select 12, from: 'card_month'
+      select 2022, from: 'card_year'
       click_button 'Sign up'
     end
 
@@ -60,6 +60,18 @@ module Features
       click_button 'Sign up'
     end
 
+    def sign_up_board(email, password, confirmation)
+      visit '/users/sign_up?plan=board'
+      fill_in :user_email, with: email
+      fill_in :user_password, with: password
+      fill_in :user_password_confirmation, with: confirmation
+      fill_in :card_number, with: '4242424242424242'
+      fill_in :card_code, with: '123'
+      select 12, from: 'card_month'
+      select 2022, from: 'card_year'
+      click_button 'Sign up'
+    end
+
     def sign_up(email, password, confirmation)
       visit new_user_registration_path
       fill_in 'Email', with: email
@@ -79,8 +91,8 @@ module Features
 
     def sign_in(email, password)
       visit new_user_session_path
-      fill_in 'Email', with: email
-      fill_in 'Password', with: password
+      fill_in 'user_email', with: email
+      fill_in 'user_password', with: password
       click_button 'Sign in'
     end
 
@@ -97,19 +109,19 @@ module Features
 
     # used in spec/controllers/visitors_controller_spec.rb
     # root_path = /visitors/new
-    # visitor with email is directed to /visitors/index
     def visitor_sign_up_for_ebook(visitor_email)
       visit root_path
       fill_in 'Email', with: visitor_email
       # fill_in 'Password', with: password # not used, not required
       # fill_in 'Password confirmation', with: confirmation # not used, not required
-      click_button 'Sign up for free ebook'
+      click_button 'Take a Trip Across the Letters Trestle'
     end
 
     def sign_in_visitor
       visitor = FactoryGirl.create(:visitor, email: 'new@example.com')
       visit root_path
       fill_in 'Email', with: visitor.email
-      click_button 'Sign up for free ebook'
+      click_button 'Take a Trip Across the Letters Trestle'
     end
   end
+end

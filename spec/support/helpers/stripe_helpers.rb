@@ -17,11 +17,12 @@ module StripeHelpers
       it 'creates a stripe customer' do
         # This doesn't touch stripe's servers nor the internet!
         # Specify :source in place of :card (with same value) to return customer with source data
-        card_token = stripe_helper.generate_card_token( number: '4242424242424242',
+        card_token = stripe_helper.generate_card_token(
+          number: '4242424242424242',
           cvc: '123',
           currency: 'usd'
         )
-        Rails.logger.info "Your stripe_token has been generated as #{stripe_token} and to be used one time. "
+        Rails.logger.info "Your stripe_token has been generated as #{stripe_token} and to be used one time."
         customer = Stripe::Customer.create(
           email: 'johnny@appleseed.com',
           source: card_token
@@ -33,7 +34,7 @@ module StripeHelpers
     describe 'create stripe token' do
       it 'creates a stripe token' do
         stripeToken = stripe_helper.generate_card_token
-        Rails.logger.info "Your stripeToken has been generated as #{stripeToken} and is to be used once. "
+        Rails.logger.info "Your stripeToken has been generated as #{stripeToken} and is to be used once."
         expect(stripeToken).to match(/test_tok/)
       end
     end
@@ -42,7 +43,10 @@ module StripeHelpers
       it 'prepares a card error' do
         StripeMock.prepare_card_error(:card_declined, :new_charge)
         cus = Stripe::Customer.create email: 'alice@example.com'
-        card = stripe_helper.generate_card_token(number: '4242424242424242', brand: 'Visa')
+        card = stripe_helper.generate_card_token(
+          number: '4242424242424242',
+          brand: 'Visa'
+        )
         expect { charge = Stripe::Charge.create(
           amount: 900,
           currency: 'usd',
