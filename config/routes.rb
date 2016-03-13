@@ -2,6 +2,8 @@ Rails.application.routes.draw do
   get "content/silver"
   get "content/gold"
   get "content/platinum"
+  get "content/gratis"
+  get "content/board"
   mount Payola::Engine => '/payola', as: :payola
   root to: 'visitors#index'
   get 'products/:id', to: 'products#show', as: :products
