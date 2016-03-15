@@ -2,7 +2,6 @@ include Warden::Test::Helpers
 Warden.test_mode!
 
 describe 'Visitor visits and sees site entrance points' do
-
   before(:each) do
     visit root_path
   end
@@ -46,5 +45,4 @@ describe 'Visitor visits and sees site entrance points' do
     visit '/users'
     expect(page).to have_content 'You need to sign in or sign up before continuing.'
   end
-
 end
