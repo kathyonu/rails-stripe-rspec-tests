@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+# Execute with --enable-frozen-string-literal-debug flag
+# ruby --enable-frozen-string-literal-debug script.rb
+
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV['RAILS_ENV'] ||= 'test'
 require 'spec_helper'
