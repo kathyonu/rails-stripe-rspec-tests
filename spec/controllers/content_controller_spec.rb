@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # Devise test helpers
 include Warden::Test::Helpers
 Warden.test_mode!

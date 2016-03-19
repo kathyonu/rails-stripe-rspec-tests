@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 include Features::SessionHelpers
 include Warden::Test::Helpers
 Warden.test_mode!
