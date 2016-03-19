@@ -3,7 +3,8 @@
 # Traits allow you to group attributes together and then apply them to any factory.
 # Reference : https://github.com/thoughtbot/factory_girl/blob/master/GETTING_STARTED.md
 FactoryGirl.define do
-  factory :account do
-    # write the attributes
+  factory :product do
+    name 'My Fabulous Ebook'
+    price '500'
   end
 end

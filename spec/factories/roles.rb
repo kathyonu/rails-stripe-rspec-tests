@@ -3,7 +3,7 @@
 # Traits allow you to group attributes together and then apply them to any factory.
 # Reference : https://github.com/thoughtbot/factory_girl/blob/master/GETTING_STARTED.md
 FactoryGirl.define do
-  factory :account do
-    # write the attributes
+  factory :role do
+    name 'admin'
   end
 end
