@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 include Features::SessionHelpers
 include Warden::Test::Helpers
 Warden.test_mode!
@@ -21,10 +22,15 @@ feature 'Sign out', :devise do
   #   When I sign out
   #   Then I see a signed out message
   scenario 'user signs out successfully' do
-    user = FactoryGirl.create(:user)
+    user = FactoryGirl.build(:user)
+    user.add = 'admin'
+    # user.add_role 'admin'
+    user.save!
+
     sign_in(user.email, user.password)
     expect(page).to have_content 'Signed in successfully.'
     expect(page).to have_content I18n.t 'devise.sessions.signed_in'
+
     click_link 'Sign out'
     expect(page).to have_content 'Signed out successfully.'
     expect(page).to have_content I18n.t 'devise.sessions.signed_out'
