@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # Feature: 'About' page
 # As a visitor
 # I want to visit an 'about' page
@@ -9,6 +10,6 @@ feature 'About page' do
   # Then I see "About the Website"
   scenario 'visitor can view the about page' do
     visit 'about'
-    expect(page).to have_content 'About Sequencers'
+    expect(page).to have_content 'About My Page'
   end
 end
