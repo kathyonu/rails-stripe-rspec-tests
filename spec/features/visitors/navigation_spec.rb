@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 include Warden::Test::Helpers
 Warden.test_mode!
 
@@ -5,7 +6,7 @@ Warden.test_mode!
 #   As a visitor
 #   I want to see navigation links
 #   So I can find home, sign in, or sign up
-feature 'Navigation links' do
+feature 'Navigation links', js: true do
   before(:each) do
     visit root_path
   end
@@ -19,12 +20,8 @@ feature 'Navigation links' do
   #   When I visit the home page
   #   Then I see Home, Sign in, and Sign up
   scenario 'view navigation links' do
-    # visit root_path
-    # expect(page).to have_content 'Home'
-    expect(page).to have_content 'Sequencers Membership'
+    expect(page).to have_content 'Home'
     expect(page).to have_content 'Login'
-    # expect(page).to have_content 'Sign in'
-    # expect(page).to have_content 'Register'
     expect(page).to have_content 'Sign Up'
   end
 
@@ -34,12 +31,9 @@ feature 'Navigation links' do
 
   scenario 'allows visitor to view navigation links' do
     expect(page).to have_content 'Welcome'
-    # expect(page).to have_link 'Home'
     expect(page).to have_link 'Database Info'
     expect(page).to have_link 'MailList Info'
     expect(page).to have_link 'Login'
-    # expect(page).to have_link 'Register'
-    # expect(page).to have_link 'Sign in'
     expect(page).to have_link 'Sign up'
   end
 
@@ -54,8 +48,15 @@ feature 'Navigation links' do
     expect(current_path).to eq '/users/sign_up'
   end
 
+  # version one
   scenario 'allows visitor to arrive on sign_up page when typing an incorrect plan in the address bar' do
-    visit '/users/sign_up?plan=hobo'
+    visit '/users/sign_up?plan=earthling'
     expect(current_path).to eq '/users/sign_up'
+  end
+
+  # version two
+  scenario 'allows visitor to arrive on home page page when typing an incorrect plan in the address bar' do
+    visit '/users/sign_up?plan=earthling'
+    expect(current_path).to eq '/home'
   end
 end
