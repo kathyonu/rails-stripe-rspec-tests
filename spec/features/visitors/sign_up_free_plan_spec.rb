@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-# 20150610 : beginnings of Free Plan tests
 describe 'Free Plan' do
   describe 'Visitor Sign up' do
     it 'visitor arrives on Free Plan Content page' do

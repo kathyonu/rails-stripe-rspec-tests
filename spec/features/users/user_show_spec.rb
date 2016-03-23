@@ -136,7 +136,8 @@
     expect(@user.id).to eq 1
     expect(page).to have_content 'johnny@appleseed.com'
     expect(page).to have_content 'frankie@appleseed.com'
-    expect(page).to have_select :user_role, 'Admin'
+    expect(@session).to have_select(':user_role', selected: 'Admin')
+    # expect(page).to have_select(:user_role, 'Admin')
     expect(page).to have_content 'Gold'
     expect(page).to have_content 'frankie@appleseed.com'
     expect(page).to have_select :user_role, 'Gold'

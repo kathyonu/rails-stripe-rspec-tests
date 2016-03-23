@@ -1,3 +1,5 @@
+# encoding: utf-8
+# frozen_string_literal: true
 # originally sourced from original Rails3.2 branch
 # of the RailsApps' rails-stripe-membership-saas app
 module StripeHelper

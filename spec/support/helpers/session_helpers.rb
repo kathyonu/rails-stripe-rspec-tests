@@ -1,3 +1,5 @@
+# encoding: utf-8
+# frozen_string_literal: true
 module Features
   module SessionHelpers
     def sign_up_silver(name, email, password, confirmation)
@@ -97,10 +99,23 @@ module Features
       click_button 'Sign up'
     end
 
-    def sign_in(email, password)
+    def signin(email, password)
       visit new_user_session_path
-      fill_in 'user_email', with: email
-      fill_in 'user_password', with: password
+      fill_in :user_email, with: email
+      fill_in :user_password, with: password
+      click_button 'Sign in'
+    end
+
+    def sign_in_admin(email, password)
+      user = FactoryGirl.build(:user, email: 'admin@example.com')
+      user.add_role 'admin'
+      user.save!
+      email = user.email
+      password = user.password
+
+      visit new_user_session_path
+      fill_in :user_email, with: email
+      fill_in :user_password, with: password
       click_button 'Sign in'
     end
 
