@@ -10,7 +10,7 @@ Rails.application.configure do
   config.eager_load = false
 
   # Show full error reports and disable caching.
-  config.consider_all_requests_local       = true
+  config.consider_all_requests_local = true
   config.action_controller.perform_caching = false
 
   # Print deprecation notices to the Rails logger.
@@ -35,9 +35,9 @@ Rails.application.configure do
   }
 
   # ActionMailer Config
-  config.action_mailer.default_url_options = { :host => 'localhost:3000' }
+  config.action_mailer.default charset: 'utf-8'
+  config.action_mailer.default_url_options = { host: 'localhost:3000' }
   config.action_mailer.delivery_method = :smtp
-
   # Set to false if you do not care if the mailer cannot send.
   config.action_mailer.raise_delivery_errors = true
 
