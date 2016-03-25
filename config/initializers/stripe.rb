@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # api_key : Note Stripe.api_key must be kept secret to prevent use of by other developers Stripe account.
 Stripe.api_key = ENV["STRIPE_API_KEY"]
 STRIPE_PUBLISHABLE_KEY = ENV["STRIPE_PUBLISHABLE_KEY"]

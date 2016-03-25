@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 Capybara.configure do |config|
   config.run_server = true
   config.current_driver = :selenium

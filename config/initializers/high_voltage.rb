@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # config/initializers/high_voltage.rb
 # enables use of address without pages in it
 # http://www.example.com/about versus
