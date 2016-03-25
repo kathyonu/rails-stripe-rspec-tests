@@ -50,10 +50,13 @@ Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }
 ActiveRecord::Migration.maintain_test_schema!
 
 # Reference : http://stackoverflow.com/questions/8862967/visit-method-not-found-in-my-rspec
-module ::RSpec::Core
-  class ExampleGroup
-    include Capybara::DSL
-    include Capybara::RSpecMatchers
+# Reference : http://stackoverflow.com/questions/8862967/visit-method-not-found-in-my-rspec
+module RSpec
+  class Core
+    class ExampleGroup
+      include Capybara::DSL
+      include Capybara::RSpecMatchers
+    end
   end
 end
 
