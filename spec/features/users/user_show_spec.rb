@@ -1,4 +1,6 @@
+# frozen_string_literal: true
 
+# incomplete, waiting for memberships test
   # Scenario: User cannot see another user's profile
   #   Given I am signed in
   #   When I visit another user's profile
@@ -130,6 +132,7 @@
     @user.role = 'admin'
     # @user.add_role 'admin'
     @user.save!
+
     login_as(@user, scope: :user)
     visit '/users'
     expect(current_path).to eq '/users'
@@ -137,6 +140,10 @@
     expect(page).to have_content 'johnny@appleseed.com'
     expect(page).to have_content 'frankie@appleseed.com'
     expect(@session).to have_select(':user_role', selected: 'Admin')
+    # expect(@session).to have_select(':user_role', selected: 'Gold')
+    # expect(@session).not_to have_select('Locale', :selected => 'Swedish')
+
+
     # expect(page).to have_select(:user_role, 'Admin')
     expect(page).to have_content 'Gold'
     expect(page).to have_content 'frankie@appleseed.com'

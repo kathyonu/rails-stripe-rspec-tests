@@ -6,7 +6,7 @@ Warden.test_mode!
 # As a new visitor to the site
 # I want to sign up with my email
 # Then gain access to the free Ebook
-RSpec.describe Visitor, type: :view do
+RSpec.describe Visitor, type: :view, js: true do
   before(:each) do
     @visitor = FactoryGirl.build(:visitor, email: 'visitor@example.com')
   end
@@ -27,7 +27,6 @@ RSpec.describe Visitor, type: :view do
 
     @visitor.save!
     expect(@visitor.persisted?).to be true
-    expect(@visitor.subscribe).to eq true
     expect(@visitor.email).to eq('visitor@example.com')
   end
 end

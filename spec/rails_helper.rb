@@ -52,7 +52,7 @@ ActiveRecord::Migration.maintain_test_schema!
 # Reference : http://stackoverflow.com/questions/8862967/visit-method-not-found-in-my-rspec
 # Reference : http://stackoverflow.com/questions/8862967/visit-method-not-found-in-my-rspec
 module RSpec
-  class Core
+  module Core
     class ExampleGroup
       include Capybara::DSL
       include Capybara::RSpecMatchers
