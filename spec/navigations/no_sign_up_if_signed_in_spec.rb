@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 # spec/navigation/no_sign_up_if_signed_in_spec.rb
-require 'stripe_mock'
 include Features::SessionHelpers
 include Warden::Test::Helpers
 Warden.test_mode!

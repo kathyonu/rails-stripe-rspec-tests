@@ -3,16 +3,24 @@ include Features::SessionHelpers
 include Warden::Test::Helpers
 Warden.test_mode!
 
-describe VisitorsController, js: true do
+describe VisitorsController, controller: true, type: :controller, js: true do
   render_views
 
   after(:each) do
     Warden.test_reset!
   end
 
+  # version one
   context 'GET #index' do
     it 'success for visitor with email' do
       get :index
+      expect(response.status).to eq 200
+    end
+
+  # version two requires email signup
+  context 'GET #index' do
+    it 'success for visitor with email' do
+      visitor_sign_up_for_ebook('iam@example.com')
       expect(response.status).to eq 200
     end
 
@@ -32,6 +40,8 @@ describe VisitorsController, js: true do
   context 'cannot visit sequences' do
     it 'visitor cannot interact with sequences' do
       visitor = FactoryGirl.create(:visitor)
+      expect(visitor.persisted?).to be true
+
       visit '/sequences'
       expect(response.status).to eq 200
       expect(current_path).to eq '/users/sign_in'
@@ -44,7 +54,6 @@ describe VisitorsController, js: true do
     it 'success for new visitor arrival' do
       get :new
       expect(response.status).to eq 200
-      expect(response.content_type).to eq 'text/html'
       expect(response.header['X-Frame-Options']).to eq 'SAMEORIGIN'
       expect(response.header['X-XSS-Protection']).to eq '1; mode=block'
       expect(response.header['X-Content-Type-Options']).to eq 'nosniff'

@@ -1,4 +1,6 @@
+# frozen_string_literal: true
 # spec/features/visitors/sign_up_spec.rb
+# priceless : https://github.com/jnicklas/capybara/blob/master/lib/capybara/session.rb#L27
 require 'stripe_mock'
 include Features::SessionHelpers
 include Warden::Test::Helpers
@@ -52,8 +54,6 @@ feature 'Sign Up', :devise, type: :features, js: true, live: true do
     expect(current_path).to eq '/content/platinum'
   end
 
-  # another system's tests
-
   scenario 'visitor can sign up as a board member subscriber' do
     visit '/users/sign_up?plan=board'
     expect(current_path).to eq '/users/sign_up'
@@ -64,6 +64,7 @@ feature 'Sign Up', :devise, type: :features, js: true, live: true do
     expect(current_path).to eq '/content/board'
   end
 
+  # version does not require credit card
   # Scenario: Visitor can sign up with valid email address and password
   #   Given I am not signed in
   #   When I sign up with a valid email address and password
@@ -75,6 +76,7 @@ feature 'Sign Up', :devise, type: :features, js: true, live: true do
     expect(page).to have_content(/.*#{txts[0]}.*|.*#{txts[1]}.*/)
   end
 
+  # version does not require credit card
   # Scenario: Visitor cannot sign up with invalid email address
   #   Given I am not signed in
   #   When I sign up with an invalid email address
@@ -87,7 +89,7 @@ feature 'Sign Up', :devise, type: :features, js: true, live: true do
     expect(page).to have_content ' Already have an account ? Log in'
   end
 
-
+  # version does require credit card
   # Scenario: Visitor cannot sign up with invalid email address
   #   Given I am not signed in
   #   When I sign up with an invalid email address
@@ -161,8 +163,4 @@ feature 'Sign Up', :devise, type: :features, js: true, live: true do
     expect(page).to have_content 'Credit card acceptance is pending.'
     expect(page).to have_content 'Password confirmation doesn\'t match'
   end
-
-  # scenario 'visitor cannot sign up with invalid payment information' do
-  #  pending 'needs work ? dealt with in spec/stripe ?'
-  # end
 end
