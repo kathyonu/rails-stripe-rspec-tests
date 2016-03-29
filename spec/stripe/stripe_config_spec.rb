@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 describe 'Config Variables' do
   describe 'STRIPE_API_KEY' do
     # this tests env variables against config/secrets.yml which reads from your env variables $ env
