@@ -6,18 +6,30 @@
 ENV['RAILS_ENV'] ||= 'test'
 require 'spec_helper'
 require File.expand_path('../../config/environment', __FILE__)
+# Prevent database truncation if the environment is production
+abort('The Rails environment is running in production mode!') if Rails.env.production?
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
 
 require 'capybara/rails'
 require 'capybara/rspec'
+# https://github.com/mattheworiordan/capybara-screenshot
+# # usage: screenshot_and_save_page
+# # usage: screenshot_and_open_image
+require 'capybara-screenshot'
+require 'email_spec'
+require 'high_voltage'
 require 'factory_girl_rails'
 require 'rspec/mocks'
 require 'stripe_mock'
 require 'stripe_mock/server'
-require 'email_spec'
 require 'sucker_punch'
 require 'thin'
+
+Capybara::Screenshot.prune_strategy = :keep_last_run
+
+ActiveRecord::Base.connection.reconnect!
+
 # ARGV = [] # Reset ARGV so Dante will quit using rspec params : ingore the warning for now.
 # StripeMock.spawn_server # : Note, leaving uncommented to test our live tests : no longer required.
 # Note of 20160320 : it appears this is again resolved, the above two, commented out, have no effect.
@@ -71,8 +83,10 @@ RSpec.configure do |config|
   # This will be the default behavior in future versions of rspec-rails.
   config.infer_base_class_for_anonymous_controllers = true
 
-  # If you're not using ActiveRecord, or you'd prefer not to run each of your examples
-  # within a transaction, remove the following line or assign false instead of true.
+  # If you're not using ActiveRecord, or you'd prefer not to run each of your
+  # examples within a transaction, remove the following line or assign false
+  # instead of true. Also see note on login not working with Capybara/Selenium
+  # https://github.com/plataformatec/devise/wiki/How-To:-Test-with-Capybara
   config.use_transactional_fixtures = false
 
   # RSpec Rails can automatically mix in different behaviours to your tests
@@ -94,8 +108,15 @@ RSpec.configure do |config|
   # check this method next time in raise_errors, any change ? 20150611
   config.raise_errors_for_deprecations!
 
+  # Filter lines from Rails gems in backtraces.
+  config.filter_rails_from_backtrace!
+  # arbitrary gems may also be filtered via:
+  # config.filter_gems_from_backtrace("gem name")
+
   config.include Warden::Test::Helpers
+
   config.include Devise::TestHelpers, type: :controller
+  config.include Devise::TestHelpers, type: :view
 
   # ref: http://codecrate.com/2014/11/rspec-controllers-best-practices.html
   config.render_views
